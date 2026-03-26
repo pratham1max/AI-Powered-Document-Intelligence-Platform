@@ -193,10 +193,10 @@ export default function Dashboard() {
       <div>
         <h2 className="text-base font-semibold text-white mb-4">Platform Capabilities</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <FeatureCard icon={MessageSquare} title="AI Chat" desc="Ask anything about your documents and get precise answers with source citations." />
-          <FeatureCard icon={Sparkles} title="Summarization" desc="Generate short or detailed summaries of any document in seconds." />
-          <FeatureCard icon={Search} title="Semantic Search" desc="Find relevant content across all your documents using vector search." />
-          <FeatureCard icon={ShieldCheck} title="AES-256 Encryption" desc="All files encrypted at rest. Your data never leaves your control." />
+          <FeatureCard icon={MessageSquare} title="AI Chat" desc="Ask anything about your documents and get precise answers with source citations." to="/app/chat" />
+          <FeatureCard icon={Sparkles} title="Summarization" desc="Generate short or detailed summaries of any document in seconds." to="/app/chat" />
+          <FeatureCard icon={Search} title="Semantic Search" desc="Find relevant content across all your documents using vector search." to="/app/chat" />
+          <FeatureCard icon={ShieldCheck} title="AES-256 Encryption" desc="All files encrypted at rest. Your data never leaves your control." to="/app/library" />
         </div>
       </div>
     </div>
@@ -243,15 +243,15 @@ function ActionCard({ icon: Icon, label, desc, to, onClick, color }) {
   return <button onClick={onClick} className={`${cls} text-left w-full`}>{inner}</button>;
 }
 
-function FeatureCard({ icon: Icon, title, desc }) {
+function FeatureCard({ icon: Icon, title, desc, to }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-      <div className="bg-indigo-500/10 w-9 h-9 rounded-lg flex items-center justify-center mb-3">
+    <Link to={to} className="group bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-xl p-5 transition-all hover:shadow-lg hover:shadow-black/20 block">
+      <div className="bg-indigo-500/10 w-9 h-9 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
         <Icon size={16} className="text-indigo-400" />
       </div>
       <p className="text-sm font-medium text-white mb-1">{title}</p>
       <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
-    </div>
+    </Link>
   );
 }
 

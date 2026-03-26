@@ -8,7 +8,7 @@ _env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
 load_dotenv(_env_path, override=True)
 
 from routers import auth, documents, query, analytics
-from routers import twofa
+from routers import twofa, fileops
 from models.database import engine
 from models import models
 
@@ -39,6 +39,7 @@ app.include_router(documents.router, prefix="/documents", tags=["documents"])
 app.include_router(query.router, prefix="/query", tags=["query"])
 app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 app.include_router(twofa.router, prefix="/2fa", tags=["2fa"])
+app.include_router(fileops.router, prefix="/fileops", tags=["fileops"])
 
 
 @app.get("/health")

@@ -8,6 +8,9 @@ import DocumentDetail from "./pages/DocumentDetail";
 import Chat from "./pages/Chat";
 import Analytics from "./pages/Analytics";
 import Layout from "./components/Layout";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
 import { useAuthStore } from "./store/authStore";
 
 function PrivateRoute({ children }) {
@@ -31,6 +34,9 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/contact" element={<Contact />} />
 
       {/* Private routes under layout */}
       <Route

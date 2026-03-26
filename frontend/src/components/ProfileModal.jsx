@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, ShieldCheck, ShieldOff, Copy, Check, Loader2, User } from "lucide-react";
+import QRCode from "qrcode";
 import { auth } from "../firebase/config";
 import { twoFaApi } from "../api/client";
 
@@ -25,7 +26,9 @@ export default function ProfileModal({ onClose }) {
     setLoading(true);
     try {
       const { data } = await twoFaApi.setup();
-      setQrCode(data.qr_code);
+      // Generate QR locally — no external requests
+      const qrDataUrl = await QRCode.toDataURL(data.qr_code, { width: 160, margin: 1 });
+      setQrCode(qrDataUrl);
       setSecret(data.secret);
       setStep("setup");
     } catch (e) {

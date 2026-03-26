@@ -55,6 +55,24 @@ export const twoFaApi = {
   status: () => api.get("/2fa/status"),
 };
 
+export const fileOpsApi = {
+  encryptText: (text) => api.post("/fileops/encrypt-text", { text }),
+  decryptText: (token) => api.post("/fileops/decrypt-text", { token }),
+  applyEncryption: (id, original_text, encrypted_token) =>
+    api.post(`/fileops/apply-encryption/${id}`, { original_text, encrypted_token }),
+  applyDecryption: (id, token, plaintext) =>
+    api.post(`/fileops/apply-decryption/${id}`, { original_text: token, encrypted_token: plaintext }),
+  getContent: (id) => api.get(`/fileops/content/${id}`),
+  lock: (id, password) => api.post(`/fileops/lock/${id}`, { password }),
+  unlock: (id, password) => api.post(`/fileops/unlock/${id}`, { password }),
+  convert: (id, target_format) =>
+    api.post(`/fileops/convert/${id}`, { target_format }, { responseType: "blob" }),
+  downloadProtected: (id, password) =>
+    api.post(`/fileops/download-protected/${id}`, { password }, { responseType: "blob" }),
+  downloadZip: (doc_ids, password = "") =>
+    api.post("/fileops/download-zip", { doc_ids, password }, { responseType: "blob" }),
+};
+
 export const documentsApi = {
   upload: (formData) => api.post("/documents/upload", formData),
   list: () => api.get("/documents"),
