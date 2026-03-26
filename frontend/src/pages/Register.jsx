@@ -70,7 +70,7 @@ export default function Register() {
     try {
       await twoFaApi.verify(otp);
       setStep(STEP.DONE);
-      setTimeout(() => navigate("/app/library"), 1500);
+      setTimeout(() => navigate("/app"), 1500);
     } catch (err) {
       setError(err.response?.data?.detail || "Invalid code. Try again.");
     } finally {
@@ -132,7 +132,7 @@ export default function Register() {
             <ShieldCheck size={14} /> Enable 2FA
           </SubmitButton>
         </form>
-        <button onClick={() => navigate("/app/library")}
+        <button onClick={() => navigate("/app")}
           className="w-full text-center text-xs text-gray-600 hover:text-gray-400 mt-3 transition-colors">
           Skip for now (not recommended)
         </button>

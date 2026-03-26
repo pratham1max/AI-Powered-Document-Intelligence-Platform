@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
 import Library from "./pages/Library";
 import DocumentDetail from "./pages/DocumentDetail";
 import Chat from "./pages/Chat";
@@ -40,7 +41,8 @@ export default function App() {
           </PrivateRoute>
         }
       >
-        <Route index element={<Navigate to="/app/library" replace />} />
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="library" element={<Library />} />
         <Route path="library/:id" element={<DocumentDetail />} />
         <Route path="chat" element={<Chat />} />

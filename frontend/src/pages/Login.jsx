@@ -28,10 +28,10 @@ export default function Login() {
       if (data.enabled) {
         setNeeds2fa(true);
       } else {
-        navigate("/app/library");
+        navigate("/app");
       }
     } catch {
-      navigate("/app/library");
+      navigate("/app");
     }
   };
 
@@ -68,7 +68,7 @@ export default function Login() {
     setLoading(true);
     try {
       await twoFaApi.validateLogin(otp);
-      navigate("/app/library");
+      navigate("/app");
     } catch (err) {
       setError(err.response?.data?.detail || "Invalid code. Try again.");
     } finally {
