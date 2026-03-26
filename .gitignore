@@ -1,12 +1,51 @@
+# Environment
 .env
 frontend/.env
+*.env.local
+
+# Secrets
 firebase-service-account.json
+*.pem
+*.key
+
+# Python
 __pycache__/
 *.pyc
 *.pyo
-node_modules/
+*.pyd
+.Python
+*.egg-info/
 dist/
-.vite/
-*.enc
+build/
+.venv/
+venv/
+env/
+
+# Database
+*.db
+*.sqlite3
 postgres_data/
+
+# Encrypted files
 encrypted_files/
+*.enc
+
+# Node
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.vite/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp

@@ -1,12 +1,10 @@
 import logging
 import json
 import math
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
-import google.generativeai as genai
-import os
 
 from models.database import get_db, DATABASE_URL
 from models.models import Document, DocumentChunk, QueryLog, User
@@ -17,11 +15,18 @@ from utils.embeddings import get_embedding
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
-gemini = genai.GenerativeModel("gemini-1.5-flash")
-
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 TOP_K = 5
-_use_pgvector = "postgresql" in DATABASE_URL
+
+
+def _generate(prompt: str) -> str:
+    from google import genai
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    response = client.models.generate_content(
+        model="models/gemini-2.0-flash",
+        contents=prompt,
+    )
+    return response.text
 
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -42,9 +47,7 @@ async def query_documents(
         if not doc or doc.user_id != current_user.id:
             raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
 
-    query_embedding = get_embedding(body.question)
-
-    # Fetch chunks and rank by cosine similarity in Python (works for both SQLite and pgvector)
+    # Get all chunks for selected documents
     result = await db.execute(
         select(DocumentChunk).where(DocumentChunk.document_id.in_(body.document_ids))
     )
@@ -53,18 +56,25 @@ async def query_documents(
     if not all_chunks:
         raise HTTPException(status_code=404, detail="No content found in selected documents")
 
-    scored = []
-    for chunk in all_chunks:
-        emb = chunk.embedding
-        if emb is None:
-            continue
-        if isinstance(emb, str):
-            emb = json.loads(emb)
-        score = _cosine_similarity(query_embedding, emb)
-        scored.append((score, chunk))
+    # Rank by cosine similarity if embeddings exist, else use first N chunks
+    chunks_with_embeddings = [c for c in all_chunks if c.embedding is not None]
 
-    scored.sort(key=lambda x: x[0], reverse=True)
-    top_chunks = [c for _, c in scored[:TOP_K]] if scored else all_chunks[:TOP_K]
+    if chunks_with_embeddings:
+        try:
+            query_embedding = get_embedding(body.question)
+            scored = []
+            for chunk in chunks_with_embeddings:
+                emb = chunk.embedding
+                if isinstance(emb, str):
+                    emb = json.loads(emb)
+                scored.append((_cosine_similarity(query_embedding, emb), chunk))
+            scored.sort(key=lambda x: x[0], reverse=True)
+            top_chunks = [c for _, c in scored[:TOP_K]]
+        except Exception as e:
+            logger.warning("Embedding query failed, using first chunks: %s", e)
+            top_chunks = all_chunks[:TOP_K]
+    else:
+        top_chunks = all_chunks[:TOP_K]
 
     context = "\n\n".join(f"[Chunk {c.chunk_index}]: {c.content}" for c in top_chunks)
     prompt = (
@@ -73,8 +83,10 @@ async def query_documents(
         f"Question: {body.question}\n\nAnswer:"
     )
 
-    response = gemini.generate_content(prompt)
-    answer = response.text
+    try:
+        answer = _generate(prompt)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI service error: {e}")
 
     log = QueryLog(
         user_id=current_user.id,
@@ -113,5 +125,9 @@ async def summarize_document(
     style = "in 2-3 sentences" if body.length == "short" else "in detail with key points"
     prompt = f"Summarize the following document {style}:\n\n{content}"
 
-    response = gemini.generate_content(prompt)
-    return SummarizeResponse(summary=response.text)
+    try:
+        summary = _generate(prompt)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AI service error: {e}")
+
+    return SummarizeResponse(summary=summary)

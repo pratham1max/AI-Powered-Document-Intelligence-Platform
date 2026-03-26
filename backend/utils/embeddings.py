@@ -1,19 +1,17 @@
 """
-Gemini embedding utility with exponential backoff for free-tier rate limits.
+Gemini embedding utility using google-genai SDK.
+Model: gemini-embedding-001 (3072 dims)
 """
 import os
-import time
 import logging
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
-
-import google.generativeai as genai
+from google import genai
 
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
-
-EMBEDDING_MODEL = "models/embedding-001"
-EMBEDDING_DIM = 768
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+EMBEDDING_MODEL = "models/gemini-embedding-001"
+EMBEDDING_DIM = 3072
 
 
 @retry(
@@ -23,13 +21,10 @@ EMBEDDING_DIM = 768
     reraise=True,
 )
 def get_embedding(text: str) -> list[float]:
-    """
-    Get a 768-dimension embedding vector for the given text using Gemini.
-    Retries with exponential backoff on rate limit errors.
-    """
-    result = genai.embed_content(
+    """Return a 3072-dim embedding vector for text using Gemini."""
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    result = client.models.embed_content(
         model=EMBEDDING_MODEL,
-        content=text,
-        task_type="retrieval_document",
+        contents=text,
     )
-    return result["embedding"]
+    return result.embeddings[0].values

@@ -68,7 +68,7 @@ export default function Library() {
           {docs.map((doc) => (
             <Link
               key={doc.id}
-              to={`/library/${doc.id}`}
+              to={`/app/library/${doc.id}`}
               className="flex items-center gap-4 bg-gray-900 border border-gray-800 hover:border-gray-600 rounded-lg px-4 py-3 transition-all hover:shadow-lg hover:shadow-black/20"
             >
               <FileText size={16} className="text-gray-400 shrink-0" />

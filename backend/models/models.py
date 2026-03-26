@@ -9,7 +9,7 @@ from models.database import Base, DATABASE_URL
 _use_pgvector = "postgresql" in DATABASE_URL
 if _use_pgvector:
     from pgvector.sqlalchemy import Vector
-    _EmbeddingCol = lambda: mapped_column(Vector(768), nullable=True)
+    _EmbeddingCol = lambda: mapped_column(Vector(3072), nullable=True)
 else:
     # Store embeddings as JSON list in SQLite
     _EmbeddingCol = lambda: mapped_column(JSON, nullable=True)
