@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light theme overrides when .light class is on <html> */
+html.light body {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+html.light .bg-gray-950 { background-color: #f9fafb; }
+html.light .bg-gray-900 { background-color: #ffffff; }
+html.light .bg-gray-800 { background-color: #f3f4f6; }
+html.light .border-gray-800 { border-color: #e5e7eb; }
+html.light .border-gray-700 { border-color: #d1d5db; }
+html.light .text-white { color: #111827; }
+html.light .text-gray-400 { color: #6b7280; }
+html.light .text-gray-500 { color: #9ca3af; }
+html.light .text-gray-300 { color: #374151; }
+
+/* Midnight theme */
+html[data-theme="midnight"] .bg-gray-950 { background-color: #020617; }
+html[data-theme="midnight"] .bg-gray-900 { background-color: #0f172a; }
+html[data-theme="midnight"] .bg-gray-800 { background-color: #1e293b; }
+html[data-theme="midnight"] .border-gray-800 { border-color: #1e293b; }

@@ -1,0 +1,12 @@
+.env
+frontend/.env
+firebase-service-account.json
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+dist/
+.vite/
+*.enc
+postgres_data/
+encrypted_files/
