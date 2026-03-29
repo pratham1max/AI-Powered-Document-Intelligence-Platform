@@ -9,6 +9,7 @@ load_dotenv(_env_path, override=True)
 
 from routers import auth, documents, query, analytics
 from routers import twofa, fileops
+from sqlalchemy import text
 from models.database import engine
 from models import models
 
@@ -16,6 +17,11 @@ from models import models
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
+        # Enable pgvector extension if available (PostgreSQL only)
+        try:
+            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        except Exception:
+            pass  # SQLite or extension already exists
         await conn.run_sync(models.Base.metadata.create_all)
     yield
 
