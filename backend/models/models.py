@@ -5,13 +5,14 @@ import os
 
 from models.database import Base, DATABASE_URL
 
-# Use pgvector Vector type only when connected to PostgreSQL
-_use_pgvector = "postgresql" in DATABASE_URL
+# Only use pgvector if explicitly enabled via env var
+# Railway's plain PostgreSQL doesn't have pgvector — use JSON instead
+_use_pgvector = os.getenv("USE_PGVECTOR", "false").lower() == "true"
+
 if _use_pgvector:
     from pgvector.sqlalchemy import Vector
     _EmbeddingCol = lambda: mapped_column(Vector(3072), nullable=True)
 else:
-    # Store embeddings as JSON list in SQLite
     _EmbeddingCol = lambda: mapped_column(JSON, nullable=True)
 
 
