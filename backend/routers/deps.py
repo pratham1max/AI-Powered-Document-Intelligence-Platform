@@ -82,6 +82,8 @@ async def get_current_user(
     except JWTError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid token: {e}")
     except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("Auth failed: %s | project_id=%s", e, FIREBASE_PROJECT_ID)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Auth failed: {e}")
 
     firebase_uid: str = decoded["sub"]
