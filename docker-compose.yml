@@ -1,24 +1,23 @@
-version: "3.9"
-
 services:
+  # ── PostgreSQL with pgvector ──────────────────────────────────────────────
   postgres:
     image: pgvector/pgvector:pg15
-    env_file: .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-docuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-docplatform}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-docuser} -d ${POSTGRES_DB:-docplatform}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  # ── Redis ─────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     networks:
@@ -29,11 +28,16 @@ services:
       timeout: 5s
       retries: 5
 
+  # ── FastAPI backend ───────────────────────────────────────────────────────
   fastapi-app:
     build:
       context: ./backend
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-docuser}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-docplatform}
+      REDIS_URL: redis://redis:6379/0
+      ENCRYPTED_FILES_DIR: /app/encrypted_files
     ports:
       - "8000:8000"
     volumes:
@@ -46,12 +50,17 @@ services:
       redis:
         condition: service_healthy
 
+  # ── Celery default worker ─────────────────────────────────────────────────
   celery-worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A celery_app worker -Q default -c 4 --loglevel=info
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-docuser}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-docplatform}
+      REDIS_URL: redis://redis:6379/0
+      ENCRYPTED_FILES_DIR: /app/encrypted_files
     volumes:
       - encrypted_files:/app/encrypted_files
     networks:
@@ -62,12 +71,17 @@ services:
       redis:
         condition: service_healthy
 
+  # ── Celery crypto worker ──────────────────────────────────────────────────
   crypto-worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A celery_app worker -Q crypto -c 2 --loglevel=info
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-docuser}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-docplatform}
+      REDIS_URL: redis://redis:6379/0
+      ENCRYPTED_FILES_DIR: /app/encrypted_files
     volumes:
       - encrypted_files:/app/encrypted_files
     networks:
@@ -78,12 +92,15 @@ services:
       redis:
         condition: service_healthy
 
+  # ── Flower (Celery monitor) ───────────────────────────────────────────────
   flower:
     build:
       context: ./backend
       dockerfile: Dockerfile
     command: celery -A celery_app flower --port=5555
     env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "5555:5555"
     networks:
@@ -91,10 +108,20 @@ services:
     depends_on:
       - redis
 
+  # ── React frontend (Nginx) ────────────────────────────────────────────────
   react-app:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
+        VITE_FIREBASE_MEASUREMENT_ID: ${VITE_FIREBASE_MEASUREMENT_ID}
     ports:
       - "3000:80"
     networks:
